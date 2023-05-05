@@ -45,12 +45,18 @@ interface User {
   $id: string;
   email: string;
   name: string;
+  emailVerification: boolean;
 };
 
 interface State {
   email: string
   password: string
   showPassword: boolean
+}
+
+interface Params {
+  userId: string
+  secret: string
 }
 
 // ** Styled Components
@@ -79,6 +85,7 @@ const LoginPage = () => {
     $id: '',
     email: '',
     name: '',
+    emailVerification: false,
   })
 
   // ** Hook
@@ -94,18 +101,41 @@ const LoginPage = () => {
     client
         .setEndpoint(endpoint)
         .setProject(project);
-    const fetchData = async () => {
+    const updateUser = async () => {
+      const { userId, secret } = router.query as unknown as Params;
       try {
-        const response = await account.get() as unknown as User;
-        setUser(response);
-        if (user.$id !== '') {
-        router.push('/dashboard')
+      await account.updateVerification(userId, secret)
+      } catch(err) {
+
+      }
+    }
+    updateUser()
+  }, [router.query, user])
+
+  useEffect(() => {
+    const client = new Client();
+    const account = new Account(client);
+
+    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
+    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
+    client
+        .setEndpoint(endpoint)
+        .setProject(project);
+    const fetchUser = async () => {
+      try {
+        const data =  await account.get()
+        if (data) {
+          setUser(data)
+          console.log(data)
+        }
+        if (user.emailVerification === true) {
+          router.push('/dashboard')
         }
       } catch(err) {
       }
     }
-    fetchData()
-  }, [router, user.$id])
+    fetchUser()
+  }, [router, user.emailVerification, user])
 
 
   const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -152,8 +182,11 @@ const LoginPage = () => {
     return;
     }
     await loginUser(event)
-    if (user.$id !== '' || user.name !== '' || user.email !== '') {
+    if (user.emailVerification === true) {
       router.push('/dashboard')
+    }
+    else {
+      alert("Please verify your mail")
     }
   }
 

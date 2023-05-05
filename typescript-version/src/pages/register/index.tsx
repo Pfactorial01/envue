@@ -45,6 +45,7 @@ interface User {
   $id: string;
   email: string;
   name: string;
+  emailVerification: boolean;
 };
 
 interface State {
@@ -87,6 +88,7 @@ const RegisterPage = () => {
     $id: '',
     email: '',
     name: '',
+    emailVerification: false,
   })
 
   // ** Hook
@@ -106,12 +108,14 @@ const RegisterPage = () => {
       try {
         const response = await account.get() as unknown as User;
         setUser(response);
+        if (user.emailVerification === true) {
         router.push('/dashboard')
+        }
       } catch(err) {
       }
     }
     fetchData()
-  }, [router, user.$id])
+  }, [router, user.$id, user.emailVerification, user])
 
 
 
@@ -141,7 +145,8 @@ const RegisterPage = () => {
     try {
       await account.create('unique()', email, password, username);
       const userData = await account.createEmailSession(email, password) as unknown as User
-      setUser(userData);
+      setUser(userData); 
+      await account.createVerification('http://localhost:3000/login')
     } catch (err) {
       alert("An error occured")
   }
@@ -158,10 +163,7 @@ const RegisterPage = () => {
     }
 
     await signupUser(event)
-
-    if (user.$id !== '' || user.name !== '' || user.email !== '') {
-      router.push('/dashboard')
-    }
+    router.push('/verification')
   }
 
 

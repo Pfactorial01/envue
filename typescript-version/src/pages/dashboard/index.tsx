@@ -32,6 +32,7 @@ interface User {
   $id: string;
   email: string;
   name: string;
+  emailVerification: boolean
 };
 
 
@@ -42,6 +43,7 @@ const Dashboard = () => {
     $id: '',
     email: '',
     name: '',
+    emailVerification: false,
   });
 
   useEffect(() => {
@@ -53,7 +55,7 @@ const Dashboard = () => {
     client
         .setEndpoint(endpoint)
         .setProject(project);
-    if (user.$id !== '' || user.name !== '' || user.email !== '') return;
+    if (user.emailVerification === false) return;
     const fetchData = () => {
       try {
         const response = account.get() as unknown as User;
@@ -64,7 +66,7 @@ const Dashboard = () => {
       }
     }
     fetchData()
-  })
+  }, [router, user.emailVerification, user])
 
   return (
     <ApexChartWrapper>
