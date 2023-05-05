@@ -1,8 +1,9 @@
 // ** React Imports
-import { useState, Fragment, ChangeEvent, MouseEvent, ReactNode } from 'react'
+import { useState, Fragment, ChangeEvent, FormEvent, MouseEvent, ReactNode, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 
 // ** MUI Components
 import Box from '@mui/material/Box'
@@ -38,7 +39,17 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 
+import { Account, Client } from 'appwrite';
+
+interface User {
+  $id: string;
+  email: string;
+  name: string;
+};
+
 interface State {
+  username: string
+  email: string
   password: string
   showPassword: boolean
 }
@@ -64,14 +75,47 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 }))
 
 const RegisterPage = () => {
+
   // ** States
   const [values, setValues] = useState<State>({
     password: '',
-    showPassword: false
+    showPassword: false,
+    username: '',
+    email: '',
+  })
+  const [user, setUser] = useState<User>({
+    $id: '',
+    email: '',
+    name: '',
   })
 
   // ** Hook
   const theme = useTheme()
+  const router = useRouter()
+
+  useEffect(() => {
+    const client = new Client();
+    const account = new Account(client);
+
+    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
+    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
+    client
+        .setEndpoint(endpoint)
+        .setProject(project);
+    const fetchData = async () => {
+      try {
+        const response = await account.get() as unknown as User;
+        setUser(response);
+        router.push('/dashboard')
+      } catch(err) {
+      }
+    }
+    fetchData()
+  }, [router, user.$id])
+
+
+
+  // const router = useRouter()
 
   const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
@@ -82,6 +126,46 @@ const RegisterPage = () => {
   const handleMouseDownPassword = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
   }
+
+  const signupUser = async (event: FormEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const client = new Client();
+    const account = new Account(client);
+
+    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
+    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
+    client
+        .setEndpoint(endpoint)
+        .setProject(project);
+    const { email, username, password } = values;
+    try {
+      await account.create('unique()', email, password, username);
+      const userData = await account.createEmailSession(email, password) as unknown as User
+      setUser(userData);
+    } catch (err) {
+      alert("An error occured")
+  }
+  }
+
+
+  const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    const { email, username, password } = values;
+    if (email === "" || username == "" || password == "") {
+      alert("All fields are required")
+
+    return;
+    }
+
+    await signupUser(event)
+
+    if (user.$id !== '' || user.name !== '' || user.email !== '') {
+      router.push('/dashboard')
+    }
+  }
+
+
+
 
   return (
     <Box className='content-center'>
@@ -166,9 +250,22 @@ const RegisterPage = () => {
             </Typography>
             <Typography variant='body2'>Make your app management easy and fun!</Typography>
           </Box>
-          <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='username' label='Username' sx={{ marginBottom: 4 }} />
-            <TextField fullWidth type='email' label='Email' sx={{ marginBottom: 4 }} />
+          <form noValidate autoComplete='off'>
+            <TextField 
+              autoFocus 
+              fullWidth 
+              id='username' 
+              label='Username' 
+              sx={{ marginBottom: 4 }}
+              onChange={handleChange('username')}
+            />
+            <TextField 
+              fullWidth 
+              type='email' 
+              label='Email' 
+              sx={{ marginBottom: 4 }} 
+              onChange={handleChange('email')}
+            />
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-register-password'>Password</InputLabel>
               <OutlinedInput
@@ -204,7 +301,14 @@ const RegisterPage = () => {
                 </Fragment>
               }
             />
-            <Button fullWidth size='large' type='submit' variant='contained' sx={{ marginBottom: 7 }}>
+            <Button 
+              fullWidth size='large' 
+              type='submit' 
+              variant='contained' 
+              sx={{ marginBottom: 7 }}
+              onClick={handleClick}
+            >
+              
               Sign up
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -212,7 +316,7 @@ const RegisterPage = () => {
                 Already have an account?
               </Typography>
               <Typography variant='body2'>
-                <Link passHref href='/pages/login'>
+                <Link passHref href='/login'>
                   <LinkStyled>Sign in instead</LinkStyled>
                 </Link>
               </Typography>
@@ -248,7 +352,7 @@ const RegisterPage = () => {
       <FooterIllustrationsV1 />
     </Box>
   )
-}
+};
 
 RegisterPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 

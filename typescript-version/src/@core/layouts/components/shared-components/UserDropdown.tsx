@@ -1,6 +1,8 @@
 // ** React Imports
 import { useState, SyntheticEvent, Fragment } from 'react'
 
+import { Account, Client } from 'appwrite';
+
 // ** Next Import
 import { useRouter } from 'next/router'
 
@@ -43,8 +45,17 @@ const UserDropdown = () => {
     setAnchorEl(event.currentTarget)
   }
 
-  const handleDropdownClose = (url?: string) => {
+  const handleDropdownClose = async (url?: string) => {
     if (url) {
+      const client = new Client();
+      const account = new Account(client);
+  
+      const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
+      const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
+      client
+          .setEndpoint(endpoint)
+          .setProject(project);
+      await account.deleteSession('current');
       router.push(url)
     }
     setAnchorEl(null)
@@ -144,7 +155,7 @@ const UserDropdown = () => {
           </Box>
         </MenuItem>
         <Divider />
-        <MenuItem sx={{ py: 2 }} onClick={() => handleDropdownClose('/pages/login')}>
+        <MenuItem sx={{ py: 2 }} onClick={() => handleDropdownClose('/login')}>
           <LogoutVariant sx={{ marginRight: 2, fontSize: '1.375rem', color: 'text.secondary' }} />
           Logout
         </MenuItem>
