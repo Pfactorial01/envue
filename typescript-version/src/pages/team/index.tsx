@@ -1,9 +1,8 @@
 // ** React Imports
 import { ChangeEvent, MouseEvent, FormEvent, ReactNode, useState, useEffect } from 'react'
-import { Account, Client, Teams } from 'appwrite';
+import {Client, Account, Teams } from 'appwrite';
 
 // ** Next Imports
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 
 // import { useRouter } from 'next/router'
@@ -11,25 +10,12 @@ import { useRouter } from 'next/router'
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
 import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
 import { styled, useTheme } from '@mui/material/styles'
 import MuiCard, { CardProps } from '@mui/material/Card'
-import InputAdornment from '@mui/material/InputAdornment'
 
-// ** Icons Imports
-import Google from 'mdi-material-ui/Google'
-import Github from 'mdi-material-ui/Github'
-import Twitter from 'mdi-material-ui/Twitter'
-import Facebook from 'mdi-material-ui/Facebook'
-import EyeOutline from 'mdi-material-ui/EyeOutline'
-import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -40,6 +26,9 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 
+interface State {
+  teamName: string
+}
 
 interface User {
   $id: string;
@@ -48,37 +37,19 @@ interface User {
   emailVerification: boolean;
 };
 
-interface State {
-  email: string
-  password: string
-  showPassword: boolean
-}
-
-interface Params {
-  userId: string
-  secret: string
-}
 
 // ** Styled Components
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
   [theme.breakpoints.up('sm')]: { width: '28rem' }
 }))
 
-const LinkStyled = styled('a')(({ theme }) => ({
-  fontSize: '0.875rem',
-  textDecoration: 'none',
-  color: theme.palette.primary.main
-}))
 
-
-const LoginPage = () => {
+const CreateTeamPage = () => {
 
 
   // ** State
   const [values, setValues] = useState<State>({
-    email: '',
-    password: '',
-    showPassword: false
+    teamName: '',
   })
 
   const [user, setUser] = useState<User>({
@@ -88,34 +59,18 @@ const LoginPage = () => {
     emailVerification: false,
   })
 
+
   // ** Hook
   const theme = useTheme()
   const router = useRouter()
 
-  useEffect(() => {
-    const client = new Client();
-    const account = new Account(client);
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
-    const updateUser = async () => {
-      const { userId, secret } = router.query as unknown as Params;
-      try {
-      await account.updateVerification(userId, secret)
-      } catch(err) {
-
-      }
-    }
-    updateUser()
-  }, [router.query, user])
+  const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
+    setValues({ ...values, [prop]: event.target.value })
+  }
 
   useEffect(() => {
     const client = new Client();
     const account = new Account(client);
-    const teams = new Teams(client)
 
     const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
     const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
@@ -125,79 +80,49 @@ const LoginPage = () => {
     const fetchUser = async () => {
       try {
         const data =  await account.get()
-        if (data) {
-          setUser(data)
-          console.log(user)
-        }
-        const team = await teams.list()
-        console.log(team)
-        if (user.emailVerification === true && team.total > 0) {
-          router.push('/dashboard')
-        }
-        if (team.total === 0) {
-          router.push('/team')
-        }
+        setUser(data)
+        console.log(user)
       } catch(err) {
       }
     }
     fetchUser()
   }, [])
 
-
-  const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
-    setValues({ ...values, [prop]: event.target.value })
-  }
-
-  const handleClickShowPassword = () => {
-    setValues({ ...values, showPassword: !values.showPassword })
-  }
-
-  const handleMouseDownPassword = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-  }
-
-  const loginUser = async (event: FormEvent<HTMLButtonElement>) => {
+  const createTeam = async (event: FormEvent<HTMLButtonElement>) => {
     event.preventDefault();
     const client = new Client();
     const account = new Account(client);
-    const teams = new Teams(client)
+    const teams = new Teams(client);
 
     const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
     const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
     client
         .setEndpoint(endpoint)
         .setProject(project);
-    const { email, password } = values;
+    const { teamName } = values;
     try {
-      await account.createEmailSession(email, password);
-      setUser(await account.get() as unknown as User)
-      const team = await teams.list()
-      console.log(user)
-      if (team.total > 0 && user.emailVerification === true) {
+      const data =  await account.get()
+      setUser(data)      
+      if (user.emailVerification === true) {
+        await teams.create('unique()', teamName)
         router.push('/dashboard')
       }
-      if (team.total === 0) {
-        router.push('/team')
-      }
-      if (team.total === 0 && user.emailVerification === false) {
-        alert("Please verify you email")
-
-        return
+      else {
+        alert("Please verify your email")
       }
     } catch (err) {
-      alert("Incorrect Username or Password")
   }
   }
 
   const handleClick = async (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const { email, password } = values;
-    if (email === "" || password == "") {
+    const { teamName } = values;
+    if (teamName === "") {
       alert("All fields are required")
 
     return;
     }
-    await loginUser(event)
+    await createTeam(event)
   }
 
   
@@ -280,41 +205,18 @@ const LoginPage = () => {
             </Typography>
           </Box>
           <Box sx={{ mb: 6 }}>
-            <Typography variant='h5' sx={{ fontWeight: 600, marginBottom: 1.5 }}>
-              Welcome to {themeConfig.templateName}! 👋🏻
+            <Typography variant='h5' sx={{ fontWeight: 600, marginBottom: 1.5, textAlign: 'center'  }}>
+              Please create a team to continue to dashboard
             </Typography>
-            <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
           <form noValidate autoComplete='off'>
             <TextField 
               fullWidth 
-              type='email' 
-              label='Email' 
+              id='teamName' 
+              label='Team name' 
               sx={{ marginBottom: 4 }} 
-              onChange={handleChange('email')}
+              onChange={handleChange('teamName')}
             />
-            <FormControl fullWidth>
-              <InputLabel htmlFor='auth-register-password'>Password</InputLabel>
-              <OutlinedInput
-                label='Password'
-                value={values.password}
-                id='auth-register-password'
-                onChange={handleChange('password')}
-                type={values.showPassword ? 'text' : 'password'}
-                endAdornment={
-                  <InputAdornment position='end'>
-                    <IconButton
-                      edge='end'
-                      onClick={handleClickShowPassword}
-                      onMouseDown={handleMouseDownPassword}
-                      aria-label='toggle password visibility'
-                    >
-                      {values.showPassword ? <EyeOutline fontSize='small' /> : <EyeOffOutline fontSize='small' />}
-                    </IconButton>
-                  </InputAdornment>
-                }
-              />
-            </FormControl>
             <Button 
               fullWidth size='large' 
               type='submit' 
@@ -322,43 +224,8 @@ const LoginPage = () => {
               sx={{ marginBottom: 7 }}
               onClick={handleClick}
             >
-              Login
+              Submit
             </Button>
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Typography variant='body2' sx={{ marginRight: 2 }}>
-                New on our platform?
-              </Typography>
-              <Typography variant='body2'>
-                <Link passHref href='/register'>
-                  <LinkStyled>Create an account</LinkStyled>
-                </Link>
-              </Typography>
-            </Box>
-            <Divider sx={{ my: 5 }}>or</Divider>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Facebook sx={{ color: '#497ce2' }} />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Twitter sx={{ color: '#1da1f2' }} />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Github
-                    sx={{ color: theme => (theme.palette.mode === 'light' ? '#272727' : theme.palette.grey[300]) }}
-                  />
-                </IconButton>
-              </Link>
-              <Link href='/' passHref>
-                <IconButton component='a' onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                  <Google sx={{ color: '#db4437' }} />
-                </IconButton>
-              </Link>
-            </Box>
           </form>
         </CardContent>
       </Card>
@@ -367,6 +234,6 @@ const LoginPage = () => {
   )
 }
 
-LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
+CreateTeamPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-export default LoginPage
+export default CreateTeamPage

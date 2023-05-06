@@ -166,9 +166,6 @@ const RegisterPage = () => {
     router.push('/verification')
   }
 
-
-
-
   return (
     <Box className='content-center'>
       <Card sx={{ zIndex: 1 }}>

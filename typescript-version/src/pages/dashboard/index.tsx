@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/router'
 
-import { Account, Client } from 'appwrite';
+import { Account, Client, Teams } from 'appwrite';
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
@@ -49,6 +49,7 @@ const Dashboard = () => {
   useEffect(() => {
     const client = new Client();
     const account = new Account(client);
+    const teams = new Teams(client)
 
     const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
     const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
@@ -56,10 +57,14 @@ const Dashboard = () => {
         .setEndpoint(endpoint)
         .setProject(project);
     if (user.emailVerification === false) return;
-    const fetchData = () => {
+    const fetchData = async () => {
       try {
-        const response = account.get() as unknown as User;
+        const response = await account.get() as unknown as User;
         setUser(response);
+        const team = await teams.list()
+        if (team.total === 0) {
+          router.push('/team')
+        } 
       } catch(err) {
         alert('Please login')
         router.push('/login')
