@@ -124,15 +124,16 @@ const LoginPage = () => {
     const { email, password } = values;
     try {
       await account.createEmailSession(email, password);
-      setUser(await account.get() as unknown as User)
+      const userData = await account.get() as unknown as User
+      setUser(userData)
       const team = await teams.list()
-      if (team.total > 0 && user.emailVerification === true) {
+      if (team.total > 0 && userData.emailVerification === true) {
         router.push('/dashboard')
       }
       if (team.total === 0) {
         router.push('/team')
       }
-      if (team.total === 0 && user.emailVerification === false) {
+      if (team.total === 0 && userData.emailVerification === false) {
         alert("Please verify you email")
 
         return
@@ -272,7 +273,7 @@ const LoginPage = () => {
               fullWidth size='large' 
               type='submit' 
               variant='contained' 
-              sx={{ marginBottom: 7 }}
+              sx={{ marginBottom: 7, marginTop: 8 }}
               onClick={handleClick}
             >
               Login

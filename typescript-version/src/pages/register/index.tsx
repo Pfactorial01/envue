@@ -98,9 +98,6 @@ const RegisterPage = () => {
   }, [router, user.$id, user.emailVerification, user])
 
 
-
-  // const router = useRouter()
-
   const handleChange = (prop: keyof RegisterState) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
   }
@@ -118,7 +115,7 @@ const RegisterPage = () => {
       await account.create('unique()', email, password, username);
       const userData = await account.createEmailSession(email, password) as unknown as User
       setUser(userData); 
-      await account.createVerification('http://localhost:3000/login')
+      await account.createVerification('https://envue.vercel.app/login/')
     } catch (err) {
       alert("An error occured")
   }
