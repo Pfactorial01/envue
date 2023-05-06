@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/router'
 
-import { Account, Client, Teams } from 'appwrite';
+import { account, teams } from '../../store/global';
+import { User } from '../../store/types';
 
 // ** MUI Imports
 import Grid from '@mui/material/Grid'
@@ -28,15 +29,6 @@ import WeeklyOverview from 'src/views/dashboard/WeeklyOverview'
 import DepositWithdraw from 'src/views/dashboard/DepositWithdraw'
 import SalesByCountries from 'src/views/dashboard/SalesByCountries'
 
-interface User {
-  $id: string;
-  email: string;
-  name: string;
-  emailVerification: boolean
-};
-
-
-
 const Dashboard = () => {
   const router = useRouter();
   const [user, setUser] = useState<User>({
@@ -47,15 +39,6 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const client = new Client();
-    const account = new Account(client);
-    const teams = new Teams(client)
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     if (user.emailVerification === false) return;
     const fetchData = async () => {
       try {

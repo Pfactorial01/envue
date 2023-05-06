@@ -1,7 +1,7 @@
 // ** React Imports
 import { useState, SyntheticEvent, Fragment } from 'react'
 
-import { Account, Client } from 'appwrite';
+import { account } from '../../../../store/global';
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -47,14 +47,6 @@ const UserDropdown = () => {
 
   const handleDropdownClose = async (url?: string) => {
     if (url) {
-      const client = new Client();
-      const account = new Account(client);
-  
-      const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-      const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-      client
-          .setEndpoint(endpoint)
-          .setProject(project);
       await account.deleteSession('current');
       router.push(url)
     }

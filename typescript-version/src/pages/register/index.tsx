@@ -1,6 +1,8 @@
 // ** React Imports
 import { useState, Fragment, ChangeEvent, FormEvent, MouseEvent, ReactNode, useEffect } from 'react'
 
+import { User, RegisterState } from '../../store/types';
+
 // ** Next Imports
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -39,21 +41,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 
-import { Account, Client } from 'appwrite';
-
-interface User {
-  $id: string;
-  email: string;
-  name: string;
-  emailVerification: boolean;
-};
-
-interface State {
-  username: string
-  email: string
-  password: string
-  showPassword: boolean
-}
+import { account } from '../../store/global';
 
 // ** Styled Components
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
@@ -78,7 +66,7 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 const RegisterPage = () => {
 
   // ** States
-  const [values, setValues] = useState<State>({
+  const [values, setValues] = useState<RegisterState>({
     password: '',
     showPassword: false,
     username: '',
@@ -96,14 +84,6 @@ const RegisterPage = () => {
   const router = useRouter()
 
   useEffect(() => {
-    const client = new Client();
-    const account = new Account(client);
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const fetchData = async () => {
       try {
         const response = await account.get() as unknown as User;
@@ -121,7 +101,7 @@ const RegisterPage = () => {
 
   // const router = useRouter()
 
-  const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (prop: keyof RegisterState) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
   }
   const handleClickShowPassword = () => {
@@ -133,14 +113,6 @@ const RegisterPage = () => {
 
   const signupUser = async (event: FormEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const client = new Client();
-    const account = new Account(client);
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const { email, username, password } = values;
     try {
       await account.create('unique()', email, password, username);

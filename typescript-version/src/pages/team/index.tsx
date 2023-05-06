@@ -1,6 +1,7 @@
 // ** React Imports
 import { ChangeEvent, MouseEvent, FormEvent, ReactNode, useState, useEffect } from 'react'
-import {Client, Account, Teams } from 'appwrite';
+import { account, teams } from '../../store/global';
+import { User, TeamState } from '../../store/types';
 
 // ** Next Imports
 import { useRouter } from 'next/router'
@@ -26,16 +27,6 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 
-interface State {
-  teamName: string
-}
-
-interface User {
-  $id: string;
-  email: string;
-  name: string;
-  emailVerification: boolean;
-};
 
 
 // ** Styled Components
@@ -48,7 +39,7 @@ const CreateTeamPage = () => {
 
 
   // ** State
-  const [values, setValues] = useState<State>({
+  const [values, setValues] = useState<TeamState>({
     teamName: '',
   })
 
@@ -64,19 +55,11 @@ const CreateTeamPage = () => {
   const theme = useTheme()
   const router = useRouter()
 
-  const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (prop: keyof TeamState) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
   }
 
   useEffect(() => {
-    const client = new Client();
-    const account = new Account(client);
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const fetchUser = async () => {
       try {
         const data =  await account.get()
@@ -89,15 +72,6 @@ const CreateTeamPage = () => {
 
   const createTeam = async (event: FormEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const client = new Client();
-    const account = new Account(client);
-    const teams = new Teams(client);
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const { teamName } = values;
     try {
       const data =  await account.get()

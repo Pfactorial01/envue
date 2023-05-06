@@ -1,6 +1,7 @@
 // ** React Imports
 import { ChangeEvent, MouseEvent, FormEvent, ReactNode, useState, useEffect } from 'react'
-import { Account, Client, Teams } from 'appwrite';
+import { account, teams } from '../../store/global';
+import { User, LoginState, Params } from '../../store/types';
 
 // ** Next Imports
 import Link from 'next/link'
@@ -40,25 +41,6 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 
-
-interface User {
-  $id: string;
-  email: string;
-  name: string;
-  emailVerification: boolean;
-};
-
-interface State {
-  email: string
-  password: string
-  showPassword: boolean
-}
-
-interface Params {
-  userId: string
-  secret: string
-}
-
 // ** Styled Components
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
   [theme.breakpoints.up('sm')]: { width: '28rem' }
@@ -75,7 +57,7 @@ const LoginPage = () => {
 
 
   // ** State
-  const [values, setValues] = useState<State>({
+  const [values, setValues] = useState<LoginState>({
     email: '',
     password: '',
     showPassword: false
@@ -93,14 +75,6 @@ const LoginPage = () => {
   const router = useRouter()
 
   useEffect(() => {
-    const client = new Client();
-    const account = new Account(client);
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const updateUser = async () => {
       const { userId, secret } = router.query as unknown as Params;
       try {
@@ -113,15 +87,6 @@ const LoginPage = () => {
   }, [router.query, user])
 
   useEffect(() => {
-    const client = new Client();
-    const account = new Account(client);
-    const teams = new Teams(client)
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const fetchUser = async () => {
       try {
         const data =  await account.get()
@@ -142,7 +107,7 @@ const LoginPage = () => {
   }, [])
 
 
-  const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (prop: keyof LoginState) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
   }
 
@@ -156,15 +121,6 @@ const LoginPage = () => {
 
   const loginUser = async (event: FormEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const client = new Client();
-    const account = new Account(client);
-    const teams = new Teams(client)
-
-    const endpoint: string = process.env.NEXT_PUBLIC_ENDPOINT as string;
-    const project: string = process.env.NEXT_PUBLIC_PROJECT as string;
-    client
-        .setEndpoint(endpoint)
-        .setProject(project);
     const { email, password } = values;
     try {
       await account.createEmailSession(email, password);
