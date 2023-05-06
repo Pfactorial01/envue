@@ -89,12 +89,12 @@ const LoginPage = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const data =  await account.get()
-        if (data) {
-          setUser(data)
+        const userData =  await account.get()
+        if (userData) {
+          setUser(userData)
         }
         const team = await teams.list()
-        if (user.emailVerification === true && team.total > 0) {
+        if (userData.emailVerification === true && team.total > 0) {
           router.push('/dashboard')
         }
         if (team.total === 0) {
