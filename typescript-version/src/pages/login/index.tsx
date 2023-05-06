@@ -127,10 +127,8 @@ const LoginPage = () => {
         const data =  await account.get()
         if (data) {
           setUser(data)
-          console.log(user)
         }
         const team = await teams.list()
-        console.log(team)
         if (user.emailVerification === true && team.total > 0) {
           router.push('/dashboard')
         }
@@ -172,7 +170,6 @@ const LoginPage = () => {
       await account.createEmailSession(email, password);
       setUser(await account.get() as unknown as User)
       const team = await teams.list()
-      console.log(user)
       if (team.total > 0 && user.emailVerification === true) {
         router.push('/dashboard')
       }

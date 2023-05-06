@@ -81,7 +81,6 @@ const CreateTeamPage = () => {
       try {
         const data =  await account.get()
         setUser(data)
-        console.log(user)
       } catch(err) {
       }
     }
