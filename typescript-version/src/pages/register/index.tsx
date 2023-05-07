@@ -116,6 +116,7 @@ const RegisterPage = () => {
       const userData = await account.createEmailSession(email, password) as unknown as User
       setUser(userData); 
       await account.createVerification('https://envue.vercel.app/login/')
+      router.push('/verification')
     } catch (err) {
       alert("An error occured")
   }
@@ -130,9 +131,7 @@ const RegisterPage = () => {
 
     return;
     }
-
     await signupUser(event)
-    router.push('/verification')
   }
 
   return (
