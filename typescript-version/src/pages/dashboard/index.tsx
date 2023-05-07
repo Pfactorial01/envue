@@ -39,11 +39,13 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    if (user.emailVerification === false) return;
     const fetchData = async () => {
       try {
         const response = await account.get() as unknown as User;
         setUser(response);
+        if (response.emailVerification === false) {
+          router.push('/login')
+         }
         const team = await teams.list()
         if (team.total === 0) {
           router.push('/team')
