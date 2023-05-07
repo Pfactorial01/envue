@@ -118,7 +118,7 @@ const RegisterPage = () => {
       await account.createVerification('https://envue.vercel.app/login/')
       router.push('/verification')
     } catch (err) {
-      alert("An error occured")
+      alert("Email already in use")
   }
   }
 
