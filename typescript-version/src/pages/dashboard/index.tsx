@@ -51,7 +51,6 @@ const Dashboard = () => {
           router.push('/team')
         } 
       } catch(err) {
-        alert('Please login')
         router.push('/login')
       }
     }

@@ -1,5 +1,10 @@
 // ** React Imports
-import { SyntheticEvent, useState } from 'react'
+import { SyntheticEvent, useEffect, useState } from 'react'
+
+import { useRouter } from 'next/router'
+
+import { account, teams } from '../../store/global';
+import { User } from '../../store/types';
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -44,6 +49,33 @@ const TabName = styled('span')(({ theme }) => ({
 const Settings = () => {
   // ** State
   const [value, setValue] = useState<string>('account')
+
+  const router = useRouter();
+  const [user, setUser] = useState<User>({
+    $id: '',
+    email: '',
+    name: '',
+    emailVerification: false,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await account.get() as unknown as User;
+        setUser(response);
+        if (response.emailVerification === false) {
+          router.push('/login')
+         }
+        const team = await teams.list()
+        if (team.total === 0) {
+          router.push('/team')
+        } 
+      } catch(err) {
+        router.push('/login')
+      }
+    }
+    fetchData()
+  }, [router, user.emailVerification, user])
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue)
